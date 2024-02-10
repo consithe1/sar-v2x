@@ -1,16 +1,14 @@
 #!/bin/bash
 
-# install curl
-sudo apt-get install curl
+# install all dependencies
+sudo apt-get install curl g++-11 clang cmake default-jre libboost-all-dev build-essential clang lld gdb bison flex perl python3 python3-pip qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5opengl5-dev libxml2-dev zlib1g-dev doxygen graphviz libwebkit2gtk-4.0-37 libgeographic-dev libcrypto++-dev sumo sumo-tools sumo-doc
 # clone the artery repository
 git clone --recurse-submodule https://github.com/riebl/artery.git
 # download Omnet++ 5.6.2 release from GitHub
 curl -L https://github.com/omnetpp/omnetpp/releases/download/omnetpp-5.6.2/omnetpp-5.6.2-src-linux.tgz --output omnetpp-5.6.2-src-linux.tgz
 
 # install artery dependencies
-sudo apt-get install g++-11 clang cmake default-jre libboost-all-dev
-sudo apt-get install build-essential clang lld gdb bison flex perl python3 python3-pip qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5opengl5-dev libxml2-dev zlib1g-dev doxygen graphviz libwebkit2gtk-4.0-37
-python3 -m pip install --user --upgrade numpy pandas matplotlib scipy seaborn posix_ipc
+python3 -m pip install --user --upgrade numpy pandas matplotlib scipy seaborn posix_ipc ipython jupyter
 
 # extract the omnetpp archive
 tar xvfz omnetpp-5.6.2-src-linux.tgz
@@ -31,15 +29,6 @@ make
 
 # go back to sar-v2x folder
 cd ..
-# installation of Vanetza dependencies for CAM messaging
-sudo apt-get install libgeographic-dev libcrypto++-dev
-
-# SUMO installation
-sudo apt-get install sumo sumo-tools sumo-doc
-
-# installing jupyter for the result analysis
-sudo pip3 install ipython jupyter
-
 # move the sar folder to the artery/scenarios folder
 mv sar artery/scenarios/sar
 cd artery/scenarios/
