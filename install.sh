@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# install git
-sudo apt-get install git
+# install curl
+sudo apt-get install curl
 # clone the artery repository
 git clone --recurse-submodule https://github.com/riebl/artery.git
 # download Omnet++ 5.6.2 release from GitHub
