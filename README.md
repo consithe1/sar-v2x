@@ -4,6 +4,7 @@
 # add yourself to the sudoers if it's not already the case
 su -
 sudo usermod -a -G sudo <replace_with_username>
+# restart your machine to make the changes applied
 
 # install git
 sudo apt-get install git
