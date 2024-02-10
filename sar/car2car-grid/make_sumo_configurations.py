@@ -2,11 +2,16 @@ import xml.etree.ElementTree as ET
 import os
 import argparse
 
+
 parser = argparse.ArgumentParser(
     prog="SAR SUMO config generator"
 )
-parser.add_argument('-n', '--net_file', type=str, help='Path to the net file for the .sumo.cfg file.')
-
+parser.add_argument(
+    '-n', 
+    '--net_file', 
+    type=str, 
+    help='Path to the net file for the .sumo.cfg file.'
+)
 
 SUMOCFG_EXT = ".sumo.cfg"
 ROU_EXT = ".rou.xml"
@@ -22,6 +27,7 @@ def create_folder(new_folder: str) -> None:
         print(f"Folder {new_folder} already existing.")
 
 def create_sumocfg(template_path: str, config_name: str, vec_path: str, net_path: str):
+    print("Generating SUMO configuration file ...")
     base_sumocfg_tree = ET.parse(template_path)
     base_sumocfg_root = base_sumocfg_tree.getroot()
 
@@ -33,18 +39,21 @@ def create_sumocfg(template_path: str, config_name: str, vec_path: str, net_path
             route_files.set("value", vec_path)
     
     base_sumocfg_tree.write(f"{config_name}/grid{SUMOCFG_EXT}")
+    print(f"SUMO configuration file created.")
 
 def create_routes(base_routes_xml: str, modulo: int, config_name: str) -> str:
     # find all the ids in the base routes file
     base_routes_tree = ET.parse(base_routes_xml)
     base_routes_root = base_routes_tree.getroot()
     indexes_routes_to_remove = []
+    print(f"Getting route indexes in {base_routes_xml} file ...")
     for index_r in range(len(base_routes_root.findall('vehicle'))):
         if index_r % modulo != 0:
             indexes_routes_to_remove.append(index_r)
     # reverse the list of indexes to delete in order to modify 
     # the xml tree without modifying the indexes
     indexes_routes_to_remove.reverse()
+    print("Indexes found.")
 
     # read the xml base files
     base_routes_root = base_routes_tree.getroot()
@@ -53,6 +62,7 @@ def create_routes(base_routes_xml: str, modulo: int, config_name: str) -> str:
 
     gen_route_xml = f"{config_name}/routes{ROU_EXT}"
     base_routes_tree.write(gen_route_xml)
+    print(f"Route file generated at {gen_route_xml}")
 
     return f"routes{ROU_EXT}"
 
@@ -96,22 +106,27 @@ def create_configurations(base_path: str, frequencies: dict, net_path: str) -> N
             print(f"Ignoring {file}")
             
     for name, freq in frequencies.items():
+        print(f"Configuration name: {name} / # cars per s: {freq}")
         # calculate every which index we should keep in order to have the desired frequency
         modulo = int(1 / freq)
-
         # create the result folder
         create_folder(name)
+        # create the routes for the simulation
         gen_routes_xml = create_routes(base_routes_xml=base_routes_xml, modulo=modulo, config_name=name)
+        # create sumo config file to use the generate routes
         create_sumocfg(template_path=base_sumocfg_xml, config_name=name, vec_path=gen_routes_xml, net_path=net_path)
+        print("Configuration generated.")
 
 def main(args):
+    # frequencies at which the vehicles should appear on the map
     frequencies = {
         "full": 1.0,
         "half": 0.5,
         "quarter": 0.25
     }
-
+    # create the configurations for every frequencies given
     create_configurations('base/', frequencies, args.net_file)
+    print("All sumo configurations have been generated for the sar project.")
 
 
 args = parser.parse_args()

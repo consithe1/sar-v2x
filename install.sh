@@ -38,15 +38,8 @@ sudo apt-get install sumo sumo-tools sumo-doc
 # installing jupyter for the result analysis
 sudo pip3 install ipython jupyter
 
-# artery installation
-cd artery
-mkdir build
-cd build
-cmake ..
-cmake --build .
-
 # move the sar folder to the artery/scenarios folder
-cd ..
+cd ../..
 mv sar artery/scenarios/sar
 cd scenarios/
 # add the sar project to the artery project list
@@ -54,7 +47,9 @@ echo "add_subdirectory(sar)" >> CMakeLists.txt
 cd sar/car2car-grid
 # generate sumo configurations for the project
 python3 make_sumo_configurations.py --net_file ../net.net.xml
-cd ../../../build
+cd ../../
+mkdir build
+cd build
 cmake .. -DWITH_SIMULTE=ON -DWITH_STORYBOARD=ON
 cmake --build .
 cd ..
