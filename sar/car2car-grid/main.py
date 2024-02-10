@@ -57,6 +57,7 @@ def create_routes(base_routes_xml: str, modulo: int, config_name: str) -> str:
     return f"routes{ROU_EXT}"
 
 def create_trips(base_trips_xml: str, modulo: int, config_name: str) -> str:
+    print("Getting the trips indexes ...")
     # find all the indexes in the base trips file
     base_trips_tree = ET.parse(base_trips_xml)
     base_trips_root = base_trips_tree.getroot()
@@ -67,6 +68,7 @@ def create_trips(base_trips_xml: str, modulo: int, config_name: str) -> str:
     # reverse the list of indexes to delete in order to modify 
     # the xml tree without modifying the indexes
     indexes_trips_to_remove.reverse()
+    print("Trips indexes retrieved.")
 
     base_trips_root = base_trips_tree.getroot()   
     for index_t in indexes_trips_to_remove:
@@ -74,6 +76,7 @@ def create_trips(base_trips_xml: str, modulo: int, config_name: str) -> str:
 
     gen_trips_xml = f"{config_name}/trips{TRIPS_EXT}"
     base_trips_tree.write(gen_trips_xml)
+    print(f"Trips file generated at: {gen_trips_xml}")
 
     return f"trips{TRIPS_EXT}"
 

@@ -45,6 +45,19 @@ cd build
 cmake ..
 cmake --build .
 
-# test of the artery installation
+# move the sar folder to the artery/scenarios folder
 cd ..
-cmake --build build --target run_example
+mv sar artery/scenarios/sar
+cd scenarios/
+# add the sar project to the artery project list
+echo "add_subdirectory(sar)" >> CMakeLists.txt
+cd sar/car2car-grid
+# generate sumo configurations for the project
+python3 main.py --net_file ../net.net.xml
+cd ../../../build
+cmake .. -DWITH_SIMULTE=ON -DWITH_STORYBOARD=ON
+cmake --build .
+cd ..
+
+# run the project
+cmake --build build --target run_sar

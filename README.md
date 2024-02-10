@@ -1,1 +1,5 @@
-# sar-v2x-lte-its-g5
+# sar-v2x
+
+```bash
+source install.sh
+```
