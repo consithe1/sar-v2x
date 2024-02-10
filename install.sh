@@ -24,12 +24,14 @@ cd omnetpp-5.6.2
 # modify configure.user in omnetpp root folder
 sed 's/WITH_OSGEARTH=yes/WITH_OSGEARTH=no/g' -i configure.user
 sed 's/WITH_OSG=yes/WITH_OSG=no/g' -i configure.user
+# build omnetpp
 source setenv
 ./configure
 make
 
-# installation of Vanetza dependencies for CAM messaging
+# go back to sar-v2x folder
 cd ..
+# installation of Vanetza dependencies for CAM messaging
 sudo apt-get install libgeographic-dev libcrypto++-dev
 
 # SUMO installation
@@ -39,19 +41,22 @@ sudo apt-get install sumo sumo-tools sumo-doc
 sudo pip3 install ipython jupyter
 
 # move the sar folder to the artery/scenarios folder
-cd ../..
 mv sar artery/scenarios/sar
-cd scenarios/
+cd artery/scenarios/
 # add the sar project to the artery project list
 echo "add_subdirectory(sar)" >> CMakeLists.txt
 cd sar/car2car-grid
 # generate sumo configurations for the project
 python3 make_sumo_configurations.py --net_file ../net.net.xml
-cd ../../
+# go back to artery folder
+cd ../../..
+# create build directory
 mkdir build
 cd build
+# build the projects
 cmake .. -DWITH_SIMULTE=ON -DWITH_STORYBOARD=ON
 cmake --build .
+# go back to artery folder
 cd ..
 
 # run the project
