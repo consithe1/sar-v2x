@@ -1,5 +1,12 @@
 # sar-v2x
 
+## Creation of a VM with VirtualBox
+| **Operating system** 	| **Storage (GiB)** 	| **Memory (GiB)** 	| **CPU** 	| **3D acceleration** 	|
+|----------------------	|-------------------	|------------------	|---------	|---------------------	|
+|     Ubuntu 22.04     	|         50        	|         4        	|    2    	|       enabled       	|
+
+
+In the VM, after the installation of Ubuntu, execute the following commands
 ```bash
 # add yourself to the sudoers if it's not already the case
 su -
