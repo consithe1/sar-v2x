@@ -53,7 +53,7 @@ cd scenarios/
 echo "add_subdirectory(sar)" >> CMakeLists.txt
 cd sar/car2car-grid
 # generate sumo configurations for the project
-python3 main.py --net_file ../net.net.xml
+python3 make_sumo_configurations.py --net_file ../net.net.xml
 cd ../../../build
 cmake .. -DWITH_SIMULTE=ON -DWITH_STORYBOARD=ON
 cmake --build .
