@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import os
 import argparse
+import copy
 
 
 parser = argparse.ArgumentParser(
@@ -41,54 +42,42 @@ def create_sumocfg(template_path: str, config_name: str, vec_path: str, net_path
     base_sumocfg_tree.write(f"{config_name}/grid{SUMOCFG_EXT}")
     print(f"SUMO configuration file created.")
 
-def create_routes(base_routes_xml: str, modulo: int, config_name: str) -> str:
+def create_routes(base_routes_xml: str, frequency: float, config_name: str) -> str:
     # find all the ids in the base routes file
     base_routes_tree = ET.parse(base_routes_xml)
     base_routes_root = base_routes_tree.getroot()
-    indexes_routes_to_remove = []
-    print(f"Getting route indexes in {base_routes_xml} file ...")
-    for index_r in range(len(base_routes_root.findall('vehicle'))):
-        if index_r % modulo != 0:
-            indexes_routes_to_remove.append(index_r)
-    # reverse the list of indexes to delete in order to modify 
-    # the xml tree without modifying the indexes
-    indexes_routes_to_remove.reverse()
-    print("Indexes found.")
 
-    # read the xml base files
-    base_routes_root = base_routes_tree.getroot()
-    for index_r in indexes_routes_to_remove:
-        base_routes_root.remove(base_routes_root[index_r])
+    # find how many times to duplicate the elements
+    base_number_vehicles = len(base_routes_root.findall('vehicle'))
+    total_number_vehicles = int(base_number_vehicles * frequency)
+    print(f"Frequency: {frequency}Hz / base # of vehicles: {base_number_vehicles} / total # of vehicles: {total_number_vehicles}")
 
-    gen_route_xml = f"{config_name}/routes{ROU_EXT}"
+    # if frequency > 1 : duplicate vehicules and append them at the end
+    if frequency > 1:
+        for index_v in range(base_number_vehicles, total_number_vehicles, 1):
+            new_v = copy.deepcopy(base_routes_root[index_v % base_number_vehicles])
+            new_v.set("id", str(index_v))
+            base_routes_root.append(new_v)
+
+    # if frequency < 1 : remove vehicules
+    elif frequency < 1:
+        for index_v in range(base_number_vehicles - 1, total_number_vehicles - 2, -1):
+            base_routes_root.remove(base_routes_root[index_v])
+
+    # change times of apparition
+    time_apparition_step = 1 / frequency
+    departure_time = 0
+    for vehicle in base_routes_root.iter('vehicle'):
+        print(f"ID vehicle: {vehicle.get('id')} / Depart time: {departure_time} s")
+        vehicle.set("depart", str(departure_time))
+        departure_time += time_apparition_step
+        
+
+    gen_route_xml = f"{config_name}/route{ROU_EXT}"
     base_routes_tree.write(gen_route_xml)
     print(f"Route file generated at {gen_route_xml}")
 
-    return f"routes{ROU_EXT}"
-
-def create_trips(base_trips_xml: str, modulo: int, config_name: str) -> str:
-    print("Getting the trips indexes ...")
-    # find all the indexes in the base trips file
-    base_trips_tree = ET.parse(base_trips_xml)
-    base_trips_root = base_trips_tree.getroot()
-    indexes_trips_to_remove = []
-    for index_t in range(len(base_trips_root.findall("trip"))):
-        if index_t % modulo != 0:
-            indexes_trips_to_remove.append(index_t)
-    # reverse the list of indexes to delete in order to modify 
-    # the xml tree without modifying the indexes
-    indexes_trips_to_remove.reverse()
-    print("Trips indexes retrieved.")
-
-    base_trips_root = base_trips_tree.getroot()   
-    for index_t in indexes_trips_to_remove:
-        base_trips_root.remove(base_trips_root[index_t])
-
-    gen_trips_xml = f"{config_name}/trips{TRIPS_EXT}"
-    base_trips_tree.write(gen_trips_xml)
-    print(f"Trips file generated at: {gen_trips_xml}")
-
-    return f"trips{TRIPS_EXT}"
+    return f"route{ROU_EXT}"
 
 def create_configurations(base_path: str, frequencies: dict, net_path: str) -> None:
     # list the content of the base folder and identify elements based on their extension
@@ -99,20 +88,15 @@ def create_configurations(base_path: str, frequencies: dict, net_path: str) -> N
         elif ROU_EXT in file:
             base_routes_xml = f"{base_path}{file}"
             print(f"Base routes configuration file identified as: {base_routes_xml}")
-        elif TRIPS_EXT in file:
-            base_trips_xml = f"{base_path}{file}"
-            print(f"Base trips configuration file identified as: {base_trips_xml}")
         else:
             print(f"Ignoring {file}")
             
     for name, freq in frequencies.items():
         print(f"Configuration name: {name} / # cars per s: {freq}")
-        # calculate every which index we should keep in order to have the desired frequency
-        modulo = int(1 / freq)
         # create the result folder
         create_folder(name)
         # create the routes for the simulation
-        gen_routes_xml = create_routes(base_routes_xml=base_routes_xml, modulo=modulo, config_name=name)
+        gen_routes_xml = create_routes(base_routes_xml=base_routes_xml, frequency=freq, config_name=name)
         # create sumo config file to use the generate routes
         create_sumocfg(template_path=base_sumocfg_xml, config_name=name, vec_path=gen_routes_xml, net_path=net_path)
         print("Configuration generated.")
@@ -120,9 +104,13 @@ def create_configurations(base_path: str, frequencies: dict, net_path: str) -> N
 def main(args):
     # frequencies at which the vehicles should appear on the map
     frequencies = {
-        "full": 1.0,
-        "half": 0.5,
-        "quarter": 0.25
+        "16Hz": 16.0,
+        "8Hz": 8.0,
+        "4Hz": 4.0,
+        "2Hz": 2.0,
+        "1Hz": 1.0,
+        "0.5Hz": 0.5,
+        "0.25Hz": 0.25
     }
     # create the configurations for every frequencies given
     create_configurations('base/', frequencies, args.net_file)
